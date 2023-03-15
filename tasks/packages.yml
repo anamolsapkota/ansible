@@ -1,12 +1,5 @@
----
-- hosts: localhost
-  connection: local
-  become: true
-
-  tasks:
-  - name: install htop
-    apt:
-      name:
-        - htop
-        - apache2
-
+- name: install htop
+  apt:
+    name:
+      - htop
+      - apache2
