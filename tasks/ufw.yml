@@ -1,0 +1,14 @@
+- name: Get SSH port from sshd_config
+  command: grep '^Port ' /etc/ssh/sshd_config | awk '{print $2}'
+  register: ssh_port
+  changed_when: false
+
+- name: Allow SSH, HTTP, and HTTPS through firewall
+  ufw:
+    rule: "{{ item }}"
+    state: present
+  loop:
+    - "allow proto tcp to any port {{ ssh_port.stdout|int }} comment 'Allow SSH'"
+    - "allow proto tcp to any port 80 comment 'Allow HTTP'"
+    - "allow proto tcp to any port 443 comment 'Allow HTTPS'"
+  when: ssh_port.stdout is defined and ssh_port.stdout != ""
