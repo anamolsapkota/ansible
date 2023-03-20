@@ -8,20 +8,28 @@
     state: enabled
   register: ufw_enabled
 
+- name: Allow HTTP and HTTPS through UFW
+  ufw:
+    rule: allow
+    port: "{{ item }}"
+  with_items:
+    - "80"
+    - "443"
+
 - name: Get SSH port from sshd_config
   command: grep '^Port ' /etc/ssh/sshd_config | awk '{print $2}'
   register: ssh_port
   changed_when: false
+  #failed_when: ssh_port.stdout == ""
+  ignore_errors: true
 
-- name: Allow SSH, HTTP, and HTTPS through firewall
+- name: Allow SSH on specified port through UFW
   ufw:
-    rule: "{{ item }}"
-    state: present
-  loop:
-    - "allow proto tcp to any port {{ ssh_port.stdout|int }} comment 'Allow SSH'"
-    - "allow proto tcp to any port 80 comment 'Allow HTTP'"
-    - "allow proto tcp to any port 443 comment 'Allow HTTPS'"
+    rule: "allow"
+    port: "{{ ssh_port.stdout | default(22) }}"
+    proto: tcp
   when: ssh_port.stdout is defined and ssh_port.stdout != ""
+  ignore_errors: true
 
 - name: Hardening server (Deny unused ports)
   ufw:
@@ -35,7 +43,8 @@
     - "2048-2052"  # Oracle Notification Service (ONS)
     - "6000-6063"  # X11 (GUI)
     - "32768-32780" # RPC services, such as NFS, may use these ports
+  ignore_errors: true
 
-- name: Deny all otehr traffic
+- name: Deny all other traffic
   ufw:
     rule: deny
