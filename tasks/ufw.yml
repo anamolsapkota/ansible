@@ -1,3 +1,8 @@
+- name: Install UFW
+  apt:
+    name: ufw
+    state: present
+
 - name: Enable UFW
   ufw:
     state: enabled
