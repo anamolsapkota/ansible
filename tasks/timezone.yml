@@ -1,0 +1,11 @@
+- name: Set timezone to Asia/Kathmandu and sync with ntp pool
+
+  tasks:
+    - name: Set timezone
+      timezone:
+        name: Asia/Kathmandu
+
+    - name: Install NTP package
+      package:
+        name: ntp
+        state: present
