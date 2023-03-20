@@ -12,15 +12,15 @@
   ufw:
     rule: allow
     port: "{{ item }}"
+    proto: tcp
+    comment: "HTTP/HTTPS"
   with_items:
     - "80"
     - "443"
 
 - name: Get SSH port from sshd_config
-  command: grep '^Port ' /etc/ssh/sshd_config | awk '{print $2}'
+  shell: grep "^Port " /etc/ssh/sshd_config | awk '{print $2}'
   register: ssh_port
-  changed_when: false
-  #failed_when: ssh_port.stdout == ""
   ignore_errors: true
 
 - name: Allow SSH on specified port through UFW
@@ -28,6 +28,7 @@
     rule: "allow"
     port: "{{ ssh_port.stdout | default(22) }}"
     proto: tcp
+    comment: "SSH"
   when: ssh_port.stdout is defined and ssh_port.stdout != ""
   ignore_errors: true
 
@@ -35,16 +36,40 @@
   ufw:
     rule: deny
     port: "{{ item }}"
+    comment: "Unused ports"
   with_items:
     - "2049"       # Network File System (NFS)
     - "111"        # Remote Procedure Call (RPC)
     - "515"        # Line Printer Daemon (LPD)
     - "1524"       # ingreslock, a remote database protocol
-    - "2048-2052"  # Oracle Notification Service (ONS)
-    - "6000-6063"  # X11 (GUI)
-    - "32768-32780" # RPC services, such as NFS, may use these ports
+    - "2048"       # Oracle Notification Service (ONS)
+    - "2050"
+    - "2051"
+    - "2052"
+    - "6000"       # X11 (GUI)
+    - "6001"
+    - "6002"
+    - "6003"
+    - "32768"      # RPC services, such as NFS, may use these ports
+    - "32769"
+    - "32770"
+    - "32771"
+    - "32772"
+    - "32773"
+    - "32774"
+    - "32775"
+    - "32776"
+    - "32777"
+    - "32778"
+    - "32779"
+    - "32780"
   ignore_errors: true
 
 - name: Deny all other traffic
   ufw:
     rule: deny
+
+- name: Reload UFW
+  systemd:
+    name: ufw
+    state: restarted
