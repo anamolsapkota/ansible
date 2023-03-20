@@ -1,3 +1,8 @@
+- name: Enable UFW
+  ufw:
+    state: enabled
+  register: ufw_enabled
+
 - name: Get SSH port from sshd_config
   command: grep '^Port ' /etc/ssh/sshd_config | awk '{print $2}'
   register: ssh_port
@@ -12,3 +17,20 @@
     - "allow proto tcp to any port 80 comment 'Allow HTTP'"
     - "allow proto tcp to any port 443 comment 'Allow HTTPS'"
   when: ssh_port.stdout is defined and ssh_port.stdout != ""
+
+- name: Hardening server (Deny unused ports)
+  ufw:
+    rule: deny
+    port: "{{ item }}"
+  with_items:
+    - "2049"       # Network File System (NFS)
+    - "111"        # Remote Procedure Call (RPC)
+    - "515"        # Line Printer Daemon (LPD)
+    - "1524"       # ingreslock, a remote database protocol
+    - "2048-2052"  # Oracle Notification Service (ONS)
+    - "6000-6063"  # X11 (GUI)
+    - "32768-32780" # RPC services, such as NFS, may use these ports
+
+- name: Deny all otehr traffic
+  ufw:
+    rule: deny
