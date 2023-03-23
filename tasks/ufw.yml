@@ -18,6 +18,16 @@
     - "80"
     - "443"
 
+- name: Allow SNMP (UDP) through UFW
+  ufw:
+    rule: allow
+    port: "{{ item }}"
+    proto: udp
+    comment: "SNMP/SNMP Trap"
+  with_items:
+    - "161"
+    - "162"
+
 - name: Get SSH port from sshd_config
   shell: grep "^Port " /etc/ssh/sshd_config | awk '{print $2}'
   register: ssh_port
