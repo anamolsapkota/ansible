@@ -5,7 +5,7 @@
 
 - name: Enable UFW
   ufw:
-    state: enabled
+    state: disabled
   register: ufw_enabled
 
 - name: Allow HTTP and HTTPS through UFW
@@ -14,9 +14,11 @@
     port: "{{ item }}"
     proto: tcp
     comment: "HTTP/HTTPS"
+    insert: 1
   with_items:
     - "80"
     - "443"
+    - "4477"
 
 - name: Allow SNMP (UDP) through UFW
   ufw:
